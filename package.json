@@ -1,14 +1,14 @@
 {
-  "name": "simple-cache",
-  "version": "1.0.0",
-  "description": "A simple async cache",
+  "name": "ttl-simple-cache",
+  "version": "1.0.1",
+  "description": "A simple async cache with ttl",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --reporter spec"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/darrell-pittman/simple-cache.git"
+    "url": "git+https://github.com/darrell-pittman/ttl-simple-cache.git"
   },
   "keywords": [
     "cache"
@@ -16,11 +16,14 @@
   "author": "Darrell Pittman <darrell@darrellpittman.ca>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/darrell-pittman/simple-cache/issues"
+    "url": "https://github.com/darrell-pittman/ttl-simple-cache/issues"
   },
-  "homepage": "https://github.com/darrell-pittman/simple-cache#readme",
+  "homepage": "https://github.com/darrell-pittman/ttl-simple-cache#readme",
   "devDependencies": {
     "mocha": "2.x.x",
     "chai": "3.5.x"
+  },
+  "dependencies": {
+    "generator-runner": "^2.2.0"
   }
 }
