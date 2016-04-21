@@ -169,7 +169,7 @@ setTimeout(function(){
 
 #### Methods
 **cleanInterval(cleanIntervalSeconds):** 
-* Sets up a clean interval that will removed expired keys when interval fires every cleanIntervalSeconds. Returns 'this' so that a TimeToLive can be setup like: 
+* Sets up a clean interval that will remove expired keys when interval fires every cleanIntervalSeconds. Returns 'this' so that a TimeToLive can be setup like: 
 let ttl = new TimeToLive(10).cleanInerval(20)
 
 **start(cache):** 
