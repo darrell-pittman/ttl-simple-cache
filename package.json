@@ -1,6 +1,6 @@
 {
   "name": "ttl-simple-cache",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "A simple async cache with ttl",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,11 @@
     "url": "git+https://github.com/darrell-pittman/ttl-simple-cache.git"
   },
   "keywords": [
-    "cache", "time to live","async", "in memory", "promise"
+    "cache",
+    "time to live",
+    "async",
+    "in memory",
+    "promise"
   ],
   "author": "Darrell Pittman <darrell@darrellpittman.ca>",
   "license": "ISC",
