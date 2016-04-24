@@ -34,9 +34,12 @@ function TimeToLive(ttlSeconds) {
     cache.remove(key)
   }
   
-  var beforeGet = (key, cache) => {
-    if (isExpired(key, cache)) {
-      remove(key, cache)
+  var beforeGet = (key, cache, force) => {
+    force = !!force || !privateProps.get(this).allowStaleGet
+    if (force){
+      if (isExpired(key, cache)) {
+        remove(key, cache)
+      }
     }
   }
   
@@ -49,7 +52,7 @@ function TimeToLive(ttlSeconds) {
     let cacheMap = getCacheMap(cache)
     cacheMap.forEach(function(value, key){
       setImmediate(function(){
-        beforeGet(key, cache)
+        beforeGet(key, cache, true)
       })
     })    
   }
@@ -81,8 +84,10 @@ function TimeToLive(ttlSeconds) {
   
 }
 
-TimeToLive.prototype.cleanInterval = function(cleanIntervalSeconds) {
-  privateProps.get(this).cleanIntervalMilleseconds = cleanIntervalSeconds * 1000
+TimeToLive.prototype.cleanInterval = function(cleanIntervalSeconds, allowStaleGet) {
+  let props = privateProps.get(this)
+  props.cleanIntervalMilleseconds = cleanIntervalSeconds * 1000
+  props.allowStaleGet = !!cleanIntervalSeconds && !!allowStaleGet
   return this
 }
 

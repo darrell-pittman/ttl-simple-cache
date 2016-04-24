@@ -56,6 +56,28 @@ describe("Time To Live Test", function(){
     
   })
   
+  describe("Setting AllowStaleGet", function(){
+    it("should allow stale key retrieval before cleanInterval fires", function(done){
+      
+      let cache = new simpleCache.Cache(util.newCountingGetter())
+
+      let ttl = new simpleCache.TimeToLive(.01).cleanInterval(.02, true)
+
+      ttl.start(cache)
+      
+      cache.get("key1").then(function(data){
+        setTimeout(function(){
+          cache.get("key1").then(function(result){
+            util.check(done, () => expect(result).to.equal('Number of Gets: 1'))            
+          })
+        }, 15)
+        
+      })  
+      
+    })
+    
+  })
+  
   describe("Cache size after clean", function(){
     it("should be 0", function(done){
       
