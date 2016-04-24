@@ -163,7 +163,7 @@ setTimeout(function(){
     console.log(result) //result = Number of Gets: 2
   })
 }, 30000)
-
+```
 
 **Clean Interval with allowStaleGet Eg:**
 
