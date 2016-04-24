@@ -15,7 +15,8 @@
     "time to live",
     "async",
     "in memory",
-    "promise"
+    "promise",
+    "ttl"
   ],
   "author": "Darrell Pittman <darrell@darrellpittman.ca>",
   "license": "ISC",
