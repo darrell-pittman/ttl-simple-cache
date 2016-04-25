@@ -8,7 +8,7 @@ Eg:
 
 
 ```
-var Cache = require('simple-cache').Cache
+var Cache = require('ttl-simple-cache').Cache
 
 var cache = new Cache(function valueGetter(key, resume){
   //Here is where you would make a REST request for example 
@@ -36,7 +36,7 @@ cache.get('key').then(function(result){
 
 ```
 
-If you don't set set a TimeToLive (explained below) on Cache then cached values are permanent unless removed by calling cache.remove(key).
+A CacheObserver is provider that can be used to manage cached values. If you don't use a CacheObserver (explained below) on Cache then cached values are permanent unless removed by calling cache.remove(key).
 
 Concurrent get calls for the same key that is not in the cache will result in only one call to valueGetter and all concurrent get Promises will be resolved with the same retrieved value.
 
@@ -67,6 +67,9 @@ Concurrent get calls for the same key that is not in the cache will result in on
 **size:** 
 * ReadOnly. Returns number of items in cache
 
+**keys:** 
+* ReadOnly. Returns an iterator for the keys in the cache
+
 ### Events
 
 **beforeGet:** 
@@ -79,17 +82,49 @@ Concurrent get calls for the same key that is not in the cache will result in on
 * Fires before item removed from Cache
 
 
+##CacheObserver
+
+A CacheObserver can be used to manage cached values. Different algorithms can be supplied to the CacheObserver.  The algorithm must expose to public functions:
+1. valueAdded(key). This will be called when a value is added to the cache. No return value.
+1. isInvalid(key, cleaning). This will be called to determine is key is still valid.  The cleaning parameter identifies whether the CacheObserver is currently in a cleaning cycle or is it responding to a Cache.get.  Returns true if key is still valid.  
+
+The observer can be set with a clean interval.  When the clean interval fires, all keys in the cache will be checked for validity by calling algorithm.isValid(key, true). The keys will be checked in chunks of  chunkSize so as not to block too long.  ChunkSize defaults to 10 but can be set to a different value.
+
+###Constructor
+**CacheObserver(algorithm)**
+* Sets this observer to use the supplied algorithm to manage cached values
+
+###Methods
+
+**cleanInterval(intervalSeconds)**
+* Sets the cleanInterval in seconds.  When this interval fires, all invalid keys will be removed from cache. Note: Invalid keys a determined by the supplied algorithm. Returns this so observer can be setup like:  
+let observer = new CacheObserver(algorithm).cleanInterval(100)
+
+**chunkSize(chunkSize)**
+* Sets the chunk size for the cleaning cycle.  Defaults to 10.  During the clean cycle, key validity will be checked in batches of chunkSize to avoid blocking. Returns this so observer can be setup like:  
+let observer = new CacheObserver(algorithm).cleanInterval(100).chunkSize(100)
+
+**start(cache)**
+* Starts managing keys in supplied Cache. Returns this so observer can be setup like:  
+let observer = new CacheObserver(algorithm).start()
+
+
+**stop()**
+* Stops managing keys. Returns this.
+
+
 ## Time To Live
 
-A TimeToLive object is also provided.  It uses cache events to remove expired items from cache.  It can be set up with just a Time To Live or it can also have a Clean Interval.  A key will maintain its value in the cache until Time To Live expires. When cache.get is called, if key is older than Time To Live then key is removed and valueGetter will be called to get new value.
+A TimeToLive object is also provided. This is an algorithm that can be used with a CacheObserver to invalidate cache keys that have been in the cache longer than the set 'Time To Live'. For efficiency, it has an AllowStaleGet property.  If this is set then stale values can be returned from the cache until the CacheObserver clean interval fires.  With this property set, the expiration is checked only on the cleaning cycle, not on Cache.get.  This property not be set unless the CacheObserver has a clean interval.
 
-If you don't set a Clean Interval, an expired key will not be removed from cache until the next get for the key is called.
+###Constructor
+**TimeToLive(ttlSeconds)**
+* Items in Cache will be invalidated after ttlSeconds.
 
-If a Clean Interval is set, all expired keys will be removed when the Clean Interval fires.
 
-While setting Clean Interval, you can set AllowStaleGet.  This will make Cache.get perform better as it doesn't check expired. Expired keys are then removed only when the Clean Interval fires.  The consequence of this is that Cache.get can return an expired value between the time that the key is expired and when the Clean Interval fires.
-
-**No Clean Interval Eg:**
+##Methods
+**allowStaleGet**
+* Sets allowStateGet to true. Key validity will now only be checked during the CacheObserver clean cycle and not on Cache.get(key). Invalid values can be returned from the Cache until the clean cycle fires. Do not set this property unless the CacheObserver has a clean interval set.
 
 
 ```
@@ -117,7 +152,9 @@ function newCountingGetter() {
 var cache = new simpleCache.Cache(newCountingGetter());
 
 //Set Time To Live (in seconds)
-var ttl = new simleCache.TimeToLive(10).start(cache); 
+var ttl = new simleCache.TimeToLive(10)
+
+var observer = new simpleCache.CacheObserver(ttl).start(cache)
 
 cache.get('key').then(function(result){
   console.log(result) //result = Number of Gets: 1
@@ -136,7 +173,7 @@ setTimeout(function(){
 
 ```
 
-Note:  In the example above, TimeToLive has no Clean Interval so even though key expires, it will not be removed from cache until cache.get('key') is called.
+Note:  In the example above, observer has no Clean Interval so even though key expires, it will not be removed from cache until cache.get('key') is called.
 
 
 
@@ -147,9 +184,9 @@ var cache = new simpleCache.Cache(newCountingGetter());
 
 //Set Time To Live and CleanInterval (in seconds)
 var ttl = new simleCache.TimeToLive(10)
-            .cleanInterval(20)
-            .start(cache); 
 
+var observer = new simpleCache.CacheObserver(ttl)
+  .cleanInterval(20).start(cache)
 
 cache.get('key').then(function(result){
   console.log(result) //result = Number of Gets: 1
@@ -171,10 +208,10 @@ setTimeout(function(){
 var cache = new simpleCache.Cache(newCountingGetter());
 
 //Set Time To Live and CleanInterval (in seconds)
-var ttl = new simleCache.TimeToLive(10)
-            .cleanInterval(20, true)
-            .start(cache); 
+var ttl = new simleCache.TimeToLive(10).allowStatelGet()
 
+var observer = new simpleCache.CacheObserver(ttl)
+  .cleanInterval(20).start(cache)
 
 cache.get('key').then(function(result){
   console.log(result) //result = Number of Gets: 1
@@ -199,18 +236,3 @@ setTimeout(function(){
 }, 30000)
 ```
 
-#### Constructor
-**TimeToLive(ttlSeconds):** 
-* ttlSeconds is the life of a key in the cache.  Keys are invalidated after ttlSeconds expires. If cache.get is called for an expired key, a new value will be retrieved.
-
-#### Methods
-**cleanInterval(cleanIntervalSeconds, allowStaleGet):** 
-* Sets up a clean interval that will remove expired keys when interval fires. If allowStaleGet = true, then Cache.get will perform better as it doesn't check if key is expired, however, stale values will be returned between the time that the key expires and when the Clean Interval fires. Returns 'this' so that a TimeToLive can be setup like:  
-  
-  let ttl = new TimeToLive(10).cleanInterval(20).start(cache).  
-
-**start(cache):** 
-* starts monitoring supplied cache for expired keys. Returns 'this'.
-
-**stop(cache):** 
-* stops monitoring supplied cache for expired keys. Returns 'this'.

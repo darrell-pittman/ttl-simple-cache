@@ -3,7 +3,6 @@
 var EventEmitter = require('events').EventEmitter;
 var sync = require('generator-runner');
 var ValueCollection = require('./value-collection')
-var TimeToLive = require('./time-to-live')
 var util = require('util');
 
 const privateProps = new WeakMap();
@@ -83,7 +82,14 @@ Object.defineProperty(Cache.prototype, 'size',{
   }
 })
 
+Object.defineProperty(Cache.prototype, 'keys',{
+  get : function() {
+    return privateProps.get(this).cache.keys()
+  }
+})
+
 module.exports = {
   Cache : Cache,
-  TimeToLive : TimeToLive
+  TimeToLive : require('./time-to-live'),
+  CacheObserver : require('./cache-observer')
 }

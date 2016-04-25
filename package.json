@@ -29,6 +29,7 @@
     "chai": "3.5.x"
   },
   "dependencies": {
-    "generator-runner": "^2.2.0"
+    "generator-runner": "^2.2.0",
+    "iterator-chunker": "^1.0.1"
   }
 }
