@@ -128,7 +128,7 @@ A TimeToLive object is also provided. This is an algorithm that can be used with
 
 
 ```
-var simpleCache = require('simple-cache')
+var simpleCache = require('ttl-simple-cache')
 
 
 function newCountingGetter() {
@@ -152,7 +152,7 @@ function newCountingGetter() {
 var cache = new simpleCache.Cache(newCountingGetter());
 
 //Set Time To Live (in seconds)
-var ttl = new simleCache.TimeToLive(10)
+var ttl = new simpleCache.TimeToLive(10)
 
 var observer = new simpleCache.CacheObserver(ttl).start(cache)
 
@@ -180,10 +180,11 @@ Note:  In the example above, observer has no Clean Interval so even though key e
 **Clean Interval Eg:**
 
 ```
+
 var cache = new simpleCache.Cache(newCountingGetter());
 
 //Set Time To Live and CleanInterval (in seconds)
-var ttl = new simleCache.TimeToLive(10)
+var ttl = new simpleCache.TimeToLive(10)
 
 var observer = new simpleCache.CacheObserver(ttl)
   .cleanInterval(20).start(cache)
@@ -208,7 +209,7 @@ setTimeout(function(){
 var cache = new simpleCache.Cache(newCountingGetter());
 
 //Set Time To Live and CleanInterval (in seconds)
-var ttl = new simleCache.TimeToLive(10).allowStatelGet()
+var ttl = new simpleCache.TimeToLive(10).allowStaleGet()
 
 var observer = new simpleCache.CacheObserver(ttl)
   .cleanInterval(20).start(cache)
