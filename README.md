@@ -84,9 +84,10 @@ Concurrent get calls for the same key that is not in the cache will result in on
 
 ##CacheObserver
 
-A CacheObserver can be used to manage cached values. Different algorithms can be supplied to the CacheObserver.  The algorithm must expose to public functions:
+A CacheObserver can be used to manage cached values. Different algorithms can be supplied to the CacheObserver.  The algorithm must expose two public functions:
 1. valueAdded(key). This will be called when a value is added to the cache. No return value.
-1. isInvalid(key, cleaning). This will be called to determine is key is still valid.  The cleaning parameter identifies whether the CacheObserver is currently in a cleaning cycle or is it responding to a Cache.get.  Returns true if key is still valid.  
+1. isInvalid(key, cleaning). This will be called to determine if key is still valid.  The cleaning parameter identifies whether the CacheObserver is currently in a cleaning cycle or is it responding to a Cache.get.  Returns true if key is invalid.  
+
 
 The observer can be set with a clean interval.  When the clean interval fires, all keys in the cache will be checked for validity by calling algorithm.isValid(key, true). The keys will be checked in chunks of  chunkSize so as not to block too long.  ChunkSize defaults to 10 but can be set to a different value.
 
@@ -97,25 +98,25 @@ The observer can be set with a clean interval.  When the clean interval fires, a
 ###Methods
 
 **cleanInterval(intervalSeconds)**
-* Sets the cleanInterval in seconds.  When this interval fires, all invalid keys will be removed from cache. Note: Invalid keys a determined by the supplied algorithm. Returns this so observer can be setup like:  
+* Sets the cleanInterval in seconds.  When this interval fires, all invalid keys will be removed from cache. Note: Invalid keys a determined by the supplied algorithm. Returns 'this' so observer can be setup like:  
 let observer = new CacheObserver(algorithm).cleanInterval(100)
 
 **chunkSize(chunkSize)**
-* Sets the chunk size for the cleaning cycle.  Defaults to 10.  During the clean cycle, key validity will be checked in batches of chunkSize to avoid blocking. Returns this so observer can be setup like:  
+* Sets the chunk size for the cleaning cycle.  Defaults to 10.  During the clean cycle, key validity will be checked in batches of chunkSize to avoid blocking. Returns 'this' so observer can be setup like:  
 let observer = new CacheObserver(algorithm).cleanInterval(100).chunkSize(100)
 
 **start(cache)**
-* Starts managing keys in supplied Cache. Returns this so observer can be setup like:  
+* Starts managing keys in supplied Cache. Returns 'this' so observer can be setup like:  
 let observer = new CacheObserver(algorithm).start()
 
 
 **stop()**
-* Stops managing keys. Returns this.
+* Stops managing keys. Returns 'this'.
 
 
 ## Time To Live
 
-A TimeToLive object is also provided. This is an algorithm that can be used with a CacheObserver to invalidate cache keys that have been in the cache longer than the set 'Time To Live'. For efficiency, it has an AllowStaleGet property.  If this is set then stale values can be returned from the cache until the CacheObserver clean interval fires.  With this property set, the expiration is checked only on the cleaning cycle, not on Cache.get.  This property not be set unless the CacheObserver has a clean interval.
+A TimeToLive object is also provided. This is an algorithm that can be used with a CacheObserver to invalidate cache keys that have been in the cache longer than the set 'Time To Live'. For efficiency, it has an AllowStaleGet property.  If this is set then stale values can be returned from the cache until the CacheObserver clean interval fires.  With this property set, the expiration is checked only on the cleaning cycle, not on Cache.get.  This property should not be set unless the CacheObserver has a clean interval.
 
 ###Constructor
 **TimeToLive(ttlSeconds)**
@@ -208,9 +209,10 @@ setTimeout(function(){
 ```
 var cache = new simpleCache.Cache(newCountingGetter());
 
-//Set Time To Live and CleanInterval (in seconds)
+//Set Time To Live (in seconds) and allow stale get
 var ttl = new simpleCache.TimeToLive(10).allowStaleGet()
 
+//Set Clean Interval (in seconds) and start observing cache
 var observer = new simpleCache.CacheObserver(ttl)
   .cleanInterval(20).start(cache)
 
