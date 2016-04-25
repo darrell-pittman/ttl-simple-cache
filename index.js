@@ -91,5 +91,6 @@ Object.defineProperty(Cache.prototype, 'keys',{
 module.exports = {
   Cache : Cache,
   TimeToLive : require('./time-to-live'),
-  CacheObserver : require('./cache-observer')
+  CacheObserver : require('./cache-observer'),
+  LRU : require('./lru')
 }

@@ -87,8 +87,8 @@ Concurrent get calls for the same key that is not in the cache will result in on
 A CacheObserver can be used to manage cached values. Different algorithms can be supplied to the CacheObserver.  The algorithm must expose two public functions:
 1. valueAdded(key). This will be called when a value is added to the cache. No return value.
 1. isInvalid(key, cleaning). This will be called to determine if key is still valid.  The cleaning parameter identifies whether the CacheObserver is currently in a cleaning cycle or is it responding to a Cache.get.  Returns true if key is invalid.  
-
-
+  
+  
 The observer can be set with a clean interval.  When the clean interval fires, all keys in the cache will be checked for validity by calling algorithm.isValid(key, true). The keys will be checked in chunks of  chunkSize so as not to block too long.  ChunkSize defaults to 10 but can be set to a different value.
 
 ###Constructor
@@ -238,4 +238,48 @@ setTimeout(function(){
   })
 }, 30000)
 ```
+
+## LRU
+
+An LRU object is also provided. This is an algorithm that can be used with a CacheObserver to invalidate cache keys based on Least Recently Used. A maxSize is set on the LRU, once this many keys are cached, the next add will remove the least recently used key. For efficiency, it has an AllowStaleGet property.  If this is set then stale values can be returned from the cache until the CacheObserver clean interval fires.  With this property set, the invalid keys are checked only on the cleaning cycle, not on Cache.get.  This property should not be set unless the CacheObserver has a clean interval. 
+
+###Constructor
+**LRU(maxSize)**
+* Items in Cache will be invalidated based on LRU when the maxSize is reached.
+
+
+##Methods
+**allowStaleGet**
+* Sets allowStateGet to true. Key validity will now only be checked during the CacheObserver clean cycle and not on Cache.get(key). Invalid values can be returned from the Cache until the clean cycle fires. Do not set this property unless the CacheObserver has a clean interval set. 
+
+
+**LRU Eg:**
+
+```
+var simpleCache = require('ttl-simple-cache')
+
+var cache = new simpleCache.Cache(someValueGetterFunction)
+var lru = new simpleCache.LRU(2) //Max 2 items in Cache
+var observer = new simpleCache.CacheObserver(lru).start()
+
+cache.get(''key1')
+.then(function(data){
+  return cache.get('key2')
+})
+.then(function(data){
+  return cache.get('key3')
+}).then(function(data){
+  //here key1 is now invalid. The next cache.get('key1') will 
+  //call the someValueGetterFunction to get a new value.  If
+  //the CacheObserver has a clean interval, 'key1' will be
+  //removed from cache on clean cycle.
+})
+
+
+```
+
+
+
+
+
 

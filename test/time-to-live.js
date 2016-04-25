@@ -12,74 +12,61 @@ var simpleCache = require("../index")
 describe("Time To Live Test", function(){
   
   
-  describe("Retrieve before ttl expires", function(){
-    it("only calls cache getter once", function(done){
-      let cache = new simpleCache.Cache(util.newCountingGetter())
-
-      let observer = new simpleCache.CacheObserver(new simpleCache.TimeToLive(.01))
-
-      observer.start(cache)
-
-      cache.get("key1").then(function(data){
-        
-        setTimeout(function(){
-          cache.get("key1").then(function(result){
-            util.check(done, () => expect(result).to.equal('Number of Gets: 1'))
-          })
-        }, 5)
-        
-      })  
+  describe("Before ttl expires", function(){
+    it("keys should be valid", function(done){
+      let ttl = new simpleCache.TimeToLive(.01)
+      ttl.valueAdded('key1')
+      
+      setTimeout(function(){
+        util.check(done, () => expect(ttl.isInvalid('key1')).to.equal(false))
+      }, 5)     
       
     })
     
   })
   
-  describe("Retrieve after ttl expires", function(){
-    it("calls cache getter again", function(done){
+  describe("After ttl expires", function(){
+    it("keys should be invalid", function(done){
       
-      let cache = new simpleCache.Cache(util.newCountingGetter())
-      let ttl = new simpleCache.TimeToLive(.01)
-      let observer = new simpleCache.CacheObserver(ttl)
+      let ttl = new simpleCache.TimeToLive(.01)       
+      ttl.valueAdded('key1')    
       
-      observer.start(cache)
-      
-      cache.get("key1").then(function(data){
-        setTimeout(function(){
-          cache.get("key1").then(function(result){
-            util.check(done, () => expect(result).to.equal('Number of Gets: 2'))            
-          })
-        }, 15)
-        
-      })  
+      setTimeout(function(){
+        util.check(done, () => expect(ttl.isInvalid('key1')).to.equal(true))  
+      }, 15)     
       
     })
     
   })
   
   describe("Setting AllowStaleGet", function(){
-    it("should allow stale key retrieval before cleanInterval fires", function(done){
+    it("should allow valid key after expiration is AllowStaleGet", function(done){
       
-      let cache = new simpleCache.Cache(util.newCountingGetter())
-      let ttl = new simpleCache.TimeToLive(.01).allowStaleGet()
-      let observer = new simpleCache.CacheObserver(ttl).cleanInterval(.02)     
+      let ttl = new simpleCache.TimeToLive(.01).allowStaleGet()       
+      ttl.valueAdded('key1')    
       
-     
-      observer.start(cache)
-      
-      cache.get("key1").then(function(data){
-        setTimeout(function(){
-          cache.get("key1").then(function(result){
-            util.check(done, () => expect(result).to.equal('Number of Gets: 1'))            
-          })
-        }, 15)
-        
-      })  
+      setTimeout(function(){
+        util.check(done, () => expect(ttl.isInvalid('key1')).to.equal(false))  
+      }, 15)     
       
     })
     
   }) 
   
   
+  describe("Setting AllowStaleGet and cleaning", function(){
+    it("should return invalid key", function(done){
+      
+      let ttl = new simpleCache.TimeToLive(.01).allowStaleGet()       
+      ttl.valueAdded('key1')    
+      
+      setTimeout(function(){
+        util.check(done, () => expect(ttl.isInvalid('key1', true)).to.equal(true))  
+      }, 15)     
+      
+    })
+    
+  }) 
   
   
  
