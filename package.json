@@ -1,6 +1,6 @@
 {
   "name": "ttl-simple-cache",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "A simple async cache with ttl",
   "main": "index.js",
   "scripts": {
