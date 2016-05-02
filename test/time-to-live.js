@@ -39,34 +39,7 @@ describe("Time To Live Test", function(){
     
   })
   
-  describe("Setting AllowStaleGet", function(){
-    it("should allow valid key after expiration is AllowStaleGet", function(done){
-      
-      let ttl = new simpleCache.TimeToLive(.01).allowStaleGet()       
-      ttl.valueAdded('key1')    
-      
-      setTimeout(function(){
-        util.check(done, () => expect(ttl.isInvalid('key1')).to.equal(false))  
-      }, 15)     
-      
-    })
-    
-  }) 
   
-  
-  describe("Setting AllowStaleGet and cleaning", function(){
-    it("should return invalid key", function(done){
-      
-      let ttl = new simpleCache.TimeToLive(.01).allowStaleGet()       
-      ttl.valueAdded('key1')    
-      
-      setTimeout(function(){
-        util.check(done, () => expect(ttl.isInvalid('key1', true)).to.equal(true))  
-      }, 15)     
-      
-    })
-    
-  }) 
   
   
  

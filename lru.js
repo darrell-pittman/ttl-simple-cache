@@ -23,36 +23,29 @@ LRU.prototype.valueAdded = function(key) {
   keys.unshift(key)  
 }
 
-LRU.prototype.isInvalid = function(key, cleaning) {
+LRU.prototype.isInvalid = function(key) {
   let props = privateProps.get(this)
   let keys = props.keys
   let invalidKeys = props.invalidKeys
   
-  if( !!cleaning ||!props.allowStaleGet) {
-    let invalid = false
-    let idx = props.invalidKeys.indexOf(key)
-    if (idx >= 0){
-      invalidKeys.splice(idx,1)
-      invalid = true
-    }
-
-    if(!invalid && !cleaning) {
-      idx = keys.indexOf(key)
-      if(idx > 0){
-        let item = keys.splice(idx,1)[0]
-        keys.unshift(item)
-      }
-    }
-
-    return invalid
+  
+  let invalid = false
+  let idx = props.invalidKeys.indexOf(key)
+  if (idx >= 0){
+    invalidKeys.splice(idx,1)
+    invalid = true
   }
-  return false
-}
 
-LRU.prototype.allowStaleGet = function() {
-  let props = privateProps.get(this)
-  props.allowStaleGet = true
-  return this
+  if(!invalid) {
+    idx = keys.indexOf(key)
+    if(idx > 0){
+      let item = keys.splice(idx,1)[0]
+      keys.unshift(item)
+    }
+  }
+
+  return invalid
+  
 }
 
 module.exports = LRU

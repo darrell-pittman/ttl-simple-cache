@@ -9,8 +9,6 @@ function TimeToLive(ttlSeconds) {
     
     ttlMilleseconds : ttlSeconds * 1000,
     
-    allowStaleGet : false,
-    
     keys : new Map(),
     
     isExpired : function(key, cache) {
@@ -28,20 +26,11 @@ TimeToLive.prototype.valueAdded = function(key){
   props.keys.set(key, new Date().getTime())
 }
 
-TimeToLive.prototype.isInvalid = function(key, cleaning) {
+TimeToLive.prototype.isInvalid = function(key) {
   let props = privateProps.get(this)
-  if( !!cleaning ||!props.allowStaleGet) {
-    return props.isExpired(key)
-  } else {
-    return false
-  }
+  return props.isExpired(key)  
 }
   
 
-TimeToLive.prototype.allowStaleGet = function() {
-  let props = privateProps.get(this)
-  props.allowStaleGet = true
-  return this
-}
 
 module.exports = TimeToLive

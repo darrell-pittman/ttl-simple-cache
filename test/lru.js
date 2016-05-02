@@ -53,28 +53,5 @@ describe("LRU Test", function(){
     })    
   })
   
-  describe("AllowStaleGet", function(){
-    it("should return valid key even if it has been expelled when not cleaning", function(){
-      let lru = new simpleCache.LRU(2).allowStaleGet()
-      lru.valueAdded('key1')
-      lru.valueAdded('key2')
-      lru.valueAdded('key3')
-      expect(false).to.equal(lru.isInvalid('key1'))  
-      expect(false).to.equal(lru.isInvalid('key2')) 
-      expect(false).to.equal(lru.isInvalid('key3'))  
-    })    
-  })
-  
-  describe("AllowStaleGet", function(){
-    it("should return invalid key if it has been expelled and we are cleaning", function(){
-      let lru = new simpleCache.LRU(2).allowStaleGet()
-      lru.valueAdded('key1')
-      lru.valueAdded('key2')
-      lru.valueAdded('key3')
-      expect(true).to.equal(lru.isInvalid('key1', true))  
-      expect(false).to.equal(lru.isInvalid('key2', true)) 
-      expect(false).to.equal(lru.isInvalid('key3', true))  
-    })    
-  })
-  
+    
 })

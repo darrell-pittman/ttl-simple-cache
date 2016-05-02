@@ -36,7 +36,7 @@ cache.get('key').then(function(result){
 
 ```
 
-A CacheObserver is provider that can be used to manage cached values. If you don't use a CacheObserver (explained below) on Cache then cached values are permanent unless removed by calling cache.remove(key).
+A CacheObserver is provided that can be used to manage cached values. If you don't use a CacheObserver (explained below) on Cache then cached values are permanent unless removed by calling cache.remove(key).
 
 Concurrent get calls for the same key that is not in the cache will result in only one call to valueGetter and all concurrent get Promises will be resolved with the same retrieved value.
 
@@ -86,10 +86,12 @@ Concurrent get calls for the same key that is not in the cache will result in on
 
 A CacheObserver can be used to manage cached values. Different algorithms can be supplied to the CacheObserver.  The algorithm must expose two public functions:
 1. valueAdded(key). This will be called when a value is added to the cache. No return value.
-1. isInvalid(key, cleaning). This will be called to determine if key is still valid.  The cleaning parameter identifies whether the CacheObserver is currently in a cleaning cycle or is it responding to a Cache.get.  Returns true if key is invalid.  
+1. isInvalid(key). This will be called to determine if key is still valid. Returns true if key is invalid.  
   
   
-The observer can be set with a clean interval.  When the clean interval fires, all keys in the cache will be checked for validity by calling algorithm.isValid(key, true). The keys will be checked in chunks of  chunkSize so as not to block too long.  ChunkSize defaults to 10 but can be set to a different value.
+The observer can be set with a clean interval.  When the clean interval fires, all keys in the cache will be checked for validity by calling algorithm.isInvalid(key). The keys will be checked in chunks of chunkSize so as not to block too long.  ChunkSize defaults to 10 but can be set to a different value.
+
+There is also an allowStaleGet setting.  This can only be set when a cleanInterval has been set. When allowStaleGet is set, the algorithm.isInvalid(key) will only be called during the clean cycle. This is much more efficient but the consequence is that invalid values can be returned from Cache.get(key) when a key has become invalid but the cleaning cycle has not yet fired.
 
 ###Constructor
 **CacheObserver(algorithm)**
@@ -100,6 +102,10 @@ The observer can be set with a clean interval.  When the clean interval fires, a
 **cleanInterval(intervalSeconds)**
 * Sets the cleanInterval in seconds.  When this interval fires, all invalid keys will be removed from cache. Note: Invalid keys a determined by the supplied algorithm. Returns 'this' so observer can be setup like:  
 let observer = new CacheObserver(algorithm).cleanInterval(100)
+
+**allowStaleGet**
+* Sets allowStaleGet to true. Will throw an Error if cleanInterval hasn't been set. This setting causes algorithm.isInvalid(key) to be called only on the clean cycle. Cache.get(key) does not check for key validity and can return invalid values until the clean cycle fires. Returns 'this' so observer can be setup like:  
+let observer = new CacheObserver(algorithm).cleanInterval(100).allowStaleGet()
 
 **chunkSize(chunkSize)**
 * Sets the chunk size for the cleaning cycle.  Defaults to 10.  During the clean cycle, key validity will be checked in batches of chunkSize to avoid blocking. Returns 'this' so observer can be setup like:  
@@ -116,16 +122,12 @@ let observer = new CacheObserver(algorithm).start()
 
 ## Time To Live
 
-A TimeToLive object is also provided. This is an algorithm that can be used with a CacheObserver to invalidate cache keys that have been in the cache longer than the set 'Time To Live'. For efficiency, it has an AllowStaleGet property.  If this is set then stale values can be returned from the cache until the CacheObserver clean interval fires.  With this property set, the expiration is checked only on the cleaning cycle, not on Cache.get.  This property should not be set unless the CacheObserver has a clean interval.
+A TimeToLive object is also provided. This is an algorithm that can be used with a CacheObserver to invalidate cache keys that have been in the cache longer than the set 'Time To Live'. 
 
 ###Constructor
 **TimeToLive(ttlSeconds)**
 * Items in Cache will be invalidated after ttlSeconds.
 
-
-##Methods
-**allowStaleGet**
-* Sets allowStateGet to true. Key validity will now only be checked during the CacheObserver clean cycle and not on Cache.get(key). Invalid values can be returned from the Cache until the clean cycle fires. Do not set this property unless the CacheObserver has a clean interval set.
 
 
 ```
@@ -174,7 +176,7 @@ setTimeout(function(){
 
 ```
 
-Note:  In the example above, observer has no Clean Interval so even though key expires, it will not be removed from cache until cache.get('key') is called.
+Note:  In the example above, observer has no Clean Interval so even though 'key' expires, it will not be removed from cache but will be replaced with new value when cache.get('key') is called.
 
 
 
@@ -210,11 +212,11 @@ setTimeout(function(){
 var cache = new simpleCache.Cache(newCountingGetter());
 
 //Set Time To Live (in seconds) and allow stale get
-var ttl = new simpleCache.TimeToLive(10).allowStaleGet()
+var ttl = new simpleCache.TimeToLive(10)
 
 //Set Clean Interval (in seconds) and start observing cache
 var observer = new simpleCache.CacheObserver(ttl)
-  .cleanInterval(20).start(cache)
+  .cleanInterval(20).allowStaleGet().start(cache)
 
 cache.get('key').then(function(result){
   console.log(result) //result = Number of Gets: 1
@@ -241,16 +243,12 @@ setTimeout(function(){
 
 ## LRU
 
-An LRU object is also provided. This is an algorithm that can be used with a CacheObserver to invalidate cache keys based on Least Recently Used. A maxSize is set on the LRU, once this many keys are cached, the next add will remove the least recently used key. For efficiency, it has an AllowStaleGet property.  If this is set then stale values can be returned from the cache until the CacheObserver clean interval fires.  With this property set, the invalid keys are checked only on the cleaning cycle, not on Cache.get.  This property should not be set unless the CacheObserver has a clean interval. 
+An LRU object is also provided. This is an algorithm that can be used with a CacheObserver to invalidate cache keys based on Least Recently Used. A maxSize is set on the LRU, once this many keys are cached, the next add will remove the least recently used key. 
 
 ###Constructor
 **LRU(maxSize)**
 * Items in Cache will be invalidated based on LRU when the maxSize is reached.
 
-
-##Methods
-**allowStaleGet**
-* Sets allowStateGet to true. Key validity will now only be checked during the CacheObserver clean cycle and not on Cache.get(key). Invalid values can be returned from the Cache until the clean cycle fires. Do not set this property unless the CacheObserver has a clean interval set. 
 
 
 **LRU Eg:**
