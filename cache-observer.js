@@ -33,21 +33,19 @@ function afterSet (key, cache) {
 function clean () {
   if(_intervalMilliseconds > 0) {
     
-    let chunker = new Chunker(_chunkSize)
+    let chunker = new Chunker(_cache.keys, _chunkSize)
     
-    chunker.on('chunk', function(chunk) {
+    chunker.on('data', function(chunk) {
       chunk.forEach(function(key){
         beforeGet(key, _cache, true)
       })
     })
     
-    chunker.on('done', function() {
+    chunker.on('end', function() {
       setTimeout(function(){
         clean()
       }, _intervalMilliseconds)
     })
-    
-    chunker.chunk(_cache.keys)
     
   }
 }

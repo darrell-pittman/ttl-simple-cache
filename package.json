@@ -30,6 +30,6 @@
   },
   "dependencies": {
     "generator-runner": "^2.2.0",
-    "iterator-chunker": "^1.0.1"
+    "iterator-chunker": "^2.0.1"
   }
 }
